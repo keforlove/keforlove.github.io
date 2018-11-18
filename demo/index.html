@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+    <link rel="stylesheet" href="./css/index.css">
+  </head>
+  <body>
+    <section class="todoapp">
+      <header class="header">
+        <h1>备忘录</h1>
+        <input
+          autofocus="autofocus"
+          autocomplete="off"
+          placeholder="你想干啥!"
+          class="new-todo"
+          v-model.trim="todoinput"
+          @keyup.enter="insertTodo"
+        />
+      </header>
+      <section class="main">
+        <input type="checkbox" class="toggle-all" @change="setAllCheck" v-model="isAllCheck"/>
+        <ul class="todo-list">
+          <li class="todo" :class="{completed:item.completed,editing:item==todoEidt}" v-for="(item, index) in currentList" @dblclick="enterEidtting(item)">
+            <div class="view">
+              <input type="checkbox" class="toggle" v-model="item.completed" />
+              <label>{{item.content}}</label>
+              <button class="destroy" @click="delOne(index)"></button>
+            </div>
+            <input type="text" class="edit" v-model="item.content" @blur="todoEidt=undefined" @keyup.enter="todoEidt=undefined"/>
+          </li>
+
+          <!-- <h2>下面是模板</h2>
+          <li class="todo">
+            <div class="view">
+              <input type="checkbox" class="toggle" />
+              <label>吃饭饭123213123</label> <button class="destroy"></button>
+            </div>
+            <input type="text" class="edit" />
+          </li>
+          <li class="todo completed">
+            <div class="view">
+              <input type="checkbox" class="toggle" /> <label>123</label>
+              <button class="destroy"></button>
+            </div>
+            <input type="text" class="edit" />
+          </li>
+          <li class="todo completed">
+            <div class="view">
+              <input type="checkbox" class="toggle" /> <label>12312</label>
+              <button class="destroy"></button>
+            </div>
+            <input type="text" class="edit" />
+          </li> -->
+        </ul>
+      </section>
+      <footer class="footer">
+        <span class="todo-count" v-show="unCompletedNum != 0" ><strong>{{unCompletedNum}}</strong> {{unCompletedNum >1?'items':'item'}} left </span>
+        <ul class="filters">
+          <li><a href="#/all" :class="{selected: status=='All'}" @click="status='All'">All</a></li>
+          <li><a href="#/active" :class="{selected: status=='Active'}" @click="status='Active'">Active</a></li>
+          <li><a href="#/completed" :class="{selected: status=='Completed'}" @click="status='Completed'">Completed</a></li>
+        </ul>
+        <button class="clear-completed" @click="clearList">Clear completed</button>
+      </footer>
+    </section>
+    <footer class="info">
+      <p>双击进入编辑状态</p>
+      <p>感谢 <a href="http://evanyou.me">Evan You</a></p>
+      <p>感谢 <a href="http://todomvc.com">TodoMVC</a></p>
+      <p>关于我 <a href="https://autumnfish.github.io/"></a></p>
+    </footer>
+  </body>
+</html>
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+<script >
+  let app = new Vue({
+    el: '.todoapp',
+    data: {
+      todoinput: '',
+      todolist: [],
+      isAllCheck: false,
+      status: 'All',
+      todoEidt: undefined,
+    },
+    methods: {
+      insertTodo(){
+        if(this.todoinput === ''){
+          alert('输点东西吧老哥')
+          return
+        }
+        this.todolist.unshift(
+          {
+          content:this.todoinput,
+          completed:false
+          }
+        )
+        this.todoinput = ''
+        
+      },    
+      delOne(index){
+        if(window.confirm('你真的要这样做吗,嘤嘤嘤')){
+            this.todolist.splice(index,1)
+        }else{
+
+        }
+      },
+      /* 全选 */
+      setAllCheck(){
+        //console.log(this.isAllCheck)
+        this.todolist.forEach(v=>{
+          v.completed = this.isAllCheck;
+        })
+          
+      },
+      /* 每一个改变 */
+      /* eachChange(){
+        let allChecked = this.todolist.length;
+        let eachChecked = 0;
+        this.todolist.forEach(v=>{
+          if(v.completed == true){
+            eachChecked++
+          }
+        })
+        //console.log(eachChecked)
+        this.isAllCheck = allChecked == eachChecked;
+      }, */
+      /* 清除完成的列表 */
+      clearList(){
+        if(window.confirm('真的要删除吗')){
+          for(let i=this.todolist.length-1;i>=0;i--){
+            if(this.todolist[i].completed == true){
+              this.todolist.splice(i,1);
+            }
+          }
+        }else{
+
+        }
+      },
+      /* 编辑 */
+      enterEidtting(item){
+        this.todoEidt = item;
+      }
+    },
+    computed:{
+      unCompletedNum(){
+      let count = 0;
+      this.todolist.forEach(v=>{
+        if(v.completed == false){
+          count++
+        }
+      })
+      return count;
+      },
+
+      currentList(){
+      if(this.status == 'All'){
+        this.currentList = this.todolist;
+        
+        return this.todolist;
+      }else if(this.status == 'Active'){
+        let currentList = [];
+        this.todolist.forEach(v=>{
+          if(v.completed == false){
+            currentList.push(v);
+          }
+        })
+        return currentList;
+      }else{
+        let currentList = [];
+        this.todolist.forEach(v=>{
+          if(v.completed == true){
+            currentList.push(v);
+          }
+        })
+        return currentList;
+      }
+        
+          
+    },
+    
+
+    },
+    
+    watch:{
+      /* 监听todolist */
+      todolist: {
+      handler: function (val, oldVal) { 
+        //console.log(this.val)
+        //console.log(this.oldval)
+        let eachChecked = 0;
+        this.todolist.forEach(v=>{
+          if(v.completed == true){
+            eachChecked++;
+          }
+        })
+        this.isAllCheck = eachChecked == this.todolist.length;
+        console.log(this.isAllCheck)
+       },
+      deep: true
+    },
+    },
+
+    created(){
+      this.todolist = JSON.parse( window.localStorage.getItem('todo24')) || [
+        {content:'张经理',completed: false}
+      ]
+      //console.log(this.todolist)
+    },
+    
+
+   
+
+  })
+  //页面关闭 缓存数据
+   window.onbeforeunload = function() {
+    window.localStorage.setItem('todo24',JSON.stringify(app.todolist))
+  }; 
+</script>
